@@ -8,27 +8,59 @@
   <title>Twinkly Facade Planner</title>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; background: #0f172a; color: #f8fafc; padding: 16px; }
-    .card { background: #1e293b; border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid #334155; }
-    h1 { font-size: 20px; margin: 0 0 4px 0; color: #38bdf8; }
-    p.sub { font-size: 13px; color: #94a3b8; margin: 0 0 12px 0; }
+    body { margin: 0; background: #090d16; color: #f8fafc; padding: 14px; padding-bottom: 40px; }
+    .card { background: #131b2e; border-radius: 16px; padding: 14px; margin-bottom: 12px; border: 1px solid #24324d; }
+    h1 { font-size: 19px; margin: 0 0 2px 0; color: #38bdf8; }
+    h2 { font-size: 15px; margin: 0 0 10px 0; color: #e2e8f0; }
+    p.sub { font-size: 12px; color: #94a3b8; margin: 0 0 10px 0; }
     .row { display: flex; gap: 10px; margin-bottom: 10px; }
     .field { flex: 1; }
     label { display: block; font-size: 12px; color: #cbd5e1; margin-bottom: 4px; font-weight: 600; }
     input[type="number"], select {
-      width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #475569;
-      background: #0f172a; color: #fff; font-size: 16px;
+      width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #334155;
+      background: #090d16; color: #fff; font-size: 15px;
     }
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding-top: 6px; }
-    canvas { width: 100%; height: auto; background: #020617; border-radius: 12px; border: 1px solid #334155; display: block; }
-    .badge { display: inline-block; background: #0284c7; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 600; }
+    input[type="range"] { width: 100%; accent-color: #38bdf8; height: 28px; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-top: 1px solid #1e293b; margin-top: 6px; }
+    .mode-switch { display: flex; gap: 8px; margin-bottom: 10px; }
+    .mode-btn {
+      flex: 1; padding: 11px 8px; border-radius: 12px; border: 1px solid #334155;
+      background: #0f172a; color: #94a3b8; font-weight: 700; font-size: 13px; cursor: pointer;
+    }
+    .mode-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+    canvas { width: 100%; height: auto; background: #04070d; border-radius: 12px; border: 1px solid #24324d; display: block; }
+    .add-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .add-btn {
+      background: #0284c7; color: #fff; border: none; border-radius: 10px;
+      padding: 0 16px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap;
+    }
+    .inv-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #0f172a; padding: 8px 12px; border-radius: 10px; margin-bottom: 6px; border: 1px solid #1e293b;
+      font-size: 13px;
+    }
+    .qty-controls { display: flex; align-items: center; gap: 8px; }
+    .qty-btn {
+      width: 28px; height: 28px; border-radius: 8px; border: 1px solid #334155;
+      background: #1e293b; color: #fff; font-weight: 700; font-size: 16px;
+    }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .stat-box { background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #1e293b; }
+    .stat-val { font-size: 17px; font-weight: 800; color: #38bdf8; }
+    .stat-lbl { font-size: 11px; color: #94a3b8; }
+    .buy-item {
+      display: flex; justify-content: space-between; padding: 8px 10px;
+      background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 10px; margin-bottom: 6px; font-size: 13px; color: #a7f3d0;
+    }
   </style>
 </head>
 <body>
+
   <div class="card">
-    <span class="badge">Stage 1 Live Prototype</span>
     <h1>Twinkly Facade Planner</h1>
-    <p class="sub">Enter your overall house width & height to auto-scale all wall & window proportions.</p>
+    <p class="sub">Vertical up-and-down LED string matrix calculator & visualizer</p>
+
     <div class="row">
       <div class="field">
         <label>House Width (m)</label>
@@ -39,80 +71,153 @@
         <input type="number" id="houseH" value="5.0" step="0.1" min="2" max="20" />
       </div>
     </div>
+
+    <div class="field" style="margin-bottom:8px;">
+      <label>Horizontal Column Spacing: <span id="spacingVal" style="color:#38bdf8;">20 cm</span> <span id="densityTag" style="color:#94a3b8;font-weight:400;">(Balanced Festive Grid)</span></label>
+      <input type="range" id="colSpacing" min="0" max="50" step="1" value="20" />
+    </div>
+
+    <div class="row" style="margin-bottom:4px;">
+      <div class="field">
+        <label>Window Routing</label>
+        <select id="winMode">
+          <option value="around">Route Around Windows</option>
+          <option value="blank">Straight Drop + Blank Out</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Recess Depth (m)</label>
+        <input type="number" id="depthVal" value="1.0" step="0.1" min="0" max="5" />
+      </div>
+    </div>
+
     <div class="toggle-row">
-      <label style="margin:0;">Keep Porch Area No-Light (Clear)</label>
+      <label style="margin:0;">Porch Area No-Light Cutoff (Keep Clear)</label>
       <input type="checkbox" id="porchNoLight" checked style="width:20px;height:20px;" />
     </div>
   </div>
 
   <div class="card">
-    <label>Facade Geometry Preview (<span id="dimLabel">10.0m × 5.0m</span>)</label>
-    <canvas id="houseCanvas" width="800" height="440"></canvas>
+    <div class="mode-switch">
+      <button class="mode-btn active" id="btnHave" onclick="setMode('have')">Show With What I Have</button>
+      <button class="mode-btn" id="btnNeed" onclick="setMode('need')">Show With What I Need</button>
+    </div>
+    <canvas id="houseCanvas" width="840" height="460"></canvas>
+    <div class="stats">
+      <div class="stat-box">
+        <div class="stat-val" id="statOwned">0.0 m</div>
+        <div class="stat-lbl">Lit Wire You Have (<span id="statOwnedLeds">0</span> LEDs)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="statNeeded">0.0 m</div>
+        <div class="stat-lbl">Total Wire for Full House (<span id="statNeededLeds">0</span> LEDs)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1. What I Have Already (Your Existing Sets)</h2>
+    <div class="add-row">
+      <select id="productSelect"></select>
+      <button class="add-btn" onclick="addProduct()">+ Add</button>
+    </div>
+    <div id="inventoryList"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Extra Sets You Need to Buy</h2>
+    <div id="shoppingList"></div>
   </div>
 
   <script>
-    const canvas = document.getElementById('houseCanvas');
-    const ctx = canvas.getContext('2d');
-    const wInput = document.getElementById('houseW');
-    const hInput = document.getElementById('houseH');
-    const porchToggle = document.getElementById('porchNoLight');
-    const dimLabel = document.getElementById('dimLabel');
+    const PRODUCTS = [
+      { id: 's600', name: 'Strings 600 (48m / 600 LEDs)', meters: 48, leds: 600 },
+      { id: 's400', name: 'Strings 400 (32m / 400 LEDs)', meters: 32, leds: 400 },
+      { id: 's250', name: 'Strings 250 (20m / 250 LEDs)', meters: 20, leds: 250 },
+      { id: 's100', name: 'Strings 100 (8m / 100 LEDs)', meters: 8, leds: 100 },
+      { id: 'shd750', name: 'Strings HD 750 (30m / 750 LEDs)', meters: 30, leds: 750 },
+      { id: 'c400', name: 'Curtains 400 (3m x 2m / 400 LEDs)', meters: 40, leds: 400 },
+      { id: 'c210', name: 'Curtains 210 (1.5m x 2.1m / 210 LEDs)', meters: 21, leds: 210 },
+      { id: 'ic190', name: 'Icicles 190 (5m x 0.5m / 190 LEDs)', meters: 15, leds: 190 },
+      { id: 'cl400', name: 'Cluster 400 (6m / 400 LEDs)', meters: 6, leds: 400 },
+      { id: 'd400', name: 'Dots 400 (20m / 400 LEDs)', meters: 20, leds: 400 },
+      { id: 'd200', name: 'Dots 200 (10m / 200 LEDs)', meters: 10, leds: 200 },
+      { id: 'f40', name: 'Festoon 40 (20m / 40 Bulbs)', meters: 20, leds: 40 },
+      { id: 'f20', name: 'Festoon 20 (10m / 20 Bulbs)', meters: 10, leds: 20 },
+      { id: 'c9', name: 'C9 Bulbs (12m / 40 Bulbs)', meters: 12, leds: 40 },
+      { id: 'net', name: 'Net Lights (1.5m x 1.5m / 144 LEDs)', meters: 12, leds: 144 },
+      { id: 'perm', name: 'Permanent Outdoor Lights (30m / 100 LEDs)', meters: 30, leds: 100 },
+      { id: 'pro250', name: 'Twinkly Pro/Plus 250 (25m / 250 LEDs)', meters: 25, leds: 250 }
+    ];
 
-    function draw() {
-      const W = parseFloat(wInput.value) || 10.0;
-      const H = parseFloat(hInput.value) || 5.0;
-      dimLabel.textContent = `${W.toFixed(1)}m × ${H.toFixed(1)}m`;
+    let inventory = {}; // starts empty (0 sets)
+    let viewMode = 'have';
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const pad = 40;
-      const drawW = canvas.width - pad * 2;
-      const drawH = canvas.height - pad * 2;
-      const sx = (px) => pad + px * drawW;
-      const sy = (py) => canvas.height - pad - py * drawH;
+    const sel = document.getElementById('productSelect');
+    PRODUCTS.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    });
 
-      // Main flat-roof facade + narrow brick apex above Window 3
-      ctx.fillStyle = '#1e293b';
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(sx(0), sy(0));
-      ctx.lineTo(sx(0), sy(0.93));
-      ctx.lineTo(sx(0.61), sy(0.93));
-      ctx.lineTo(sx(0.712), sy(1.0));
-      ctx.lineTo(sx(0.815), sy(0.93));
-      ctx.lineTo(sx(1.0), sy(0.93));
-      ctx.lineTo(sx(1.0), sy(0));
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Porch area (x: 15.5% - 49%, y: 0 - 47%)
-      ctx.fillStyle = porchToggle.checked ? 'rgba(239, 68, 68, 0.2)' : 'rgba(56, 189, 248, 0.1)';
-      ctx.strokeStyle = porchToggle.checked ? '#ef4444' : '#64748b';
-      ctx.setLineDash([6, 4]);
-      ctx.fillRect(sx(0.155), sy(0.47), drawW * 0.335, drawH * 0.47);
-      ctx.strokeRect(sx(0.155), sy(0.47), drawW * 0.335, drawH * 0.47);
-      ctx.setLineDash([]);
-
-      // Windows
-      const windows = [
-        { name: 'W1', x: 0.05, y: 0.37, w: 0.095, h: 0.53 },
-        { name: 'W2', x: 0.255, y: 0.63, w: 0.15, h: 0.27 },
-        { name: 'W3', x: 0.615, y: 0.65, w: 0.195, h: 0.24 },
-        { name: 'W4', x: 0.615, y: 0.17, w: 0.195, h: 0.30 }
-      ];
-      ctx.fillStyle = '#0f172a';
-      ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 2;
-      windows.forEach(win => {
-        const rx = sx(win.x), ry = sy(win.y + win.h), rw = drawW * win.w, rh = drawH * win.h;
-        ctx.fillRect(rx, ry, rw, rh);
-        ctx.strokeRect(rx, ry, rw, rh);
-      });
+    function setMode(m) {
+      viewMode = m;
+      document.getElementById('btnHave').classList.toggle('active', m === 'have');
+      document.getElementById('btnNeed').classList.toggle('active', m === 'need');
+      updateAll();
     }
 
-    [wInput, hInput, porchToggle].forEach(el => el.addEventListener('input', draw));
-    draw();
-  </script>
-</body>
-</html>
+    function addProduct() {
+      const id = sel.value;
+      inventory[id] = (inventory[id] || 0) + 1;
+      updateAll();
+    }
+
+    function changeQty(id, delta) {
+      inventory[id] = (inventory[id] || 0) + delta;
+      if (inventory[id] <= 0) delete inventory[id];
+      updateAll();
+    }
+
+    function renderInventory() {
+      const list = document.getElementById('inventoryList');
+      const keys = Object.keys(inventory);
+      if (keys.length === 0) {
+        list.innerHTML = '<p class="sub" style="margin:4px 0;">No sets added yet. Select your Twinkly sets above and tap + Add.</p>';
+        return;
+      }
+      list.innerHTML = keys.map(id => {
+        const p = PRODUCTS.find(x => x.id === id);
+        return `<div class="inv-item">
+          <span>${p.name}</span>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty('${id}', -1)">−</button>
+            <strong>${inventory[id]}</strong>
+            <button class="qty-btn" onclick="changeQty('${id}', 1)">+</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function roofTopNorm(nx) {
+      if (nx >= 0.61 && nx <= 0.815) {
+        const mid = 0.7125;
+        const half = 0.1025;
+        const t = 1 - Math.abs(nx - mid) / half;
+        return 0.93 + 0.07 * Math.max(0, t);
+      }
+      return 0.93;
+    }
+
+    function bottomLimitNorm(nx, porchClear) {
+      if (porchClear && nx >= 0.155 && nx <= 0.49) return 0.47;
+      return 0.02;
+    }
+
+    function updateAll() {
+      renderInventory();
+
+      const W = Math.max(2, parseFloat(document.getElementById('houseW').value) || 10.0);
+      const H = Math.max(2, parseFloat(document.getElementById('houseH').value) || 5.0);
+      const rawCm = parseInt(document.getElementById('colSpacing').value, 10);
