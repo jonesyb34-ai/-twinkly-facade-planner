@@ -34,33 +34,42 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
 </head>
 <body>
 <div class="card">
-  <h1>Twinkly Facade Planner <span style="font-size:11px;color:#10b981">v6.0</span></h1>
+  <h1>Twinkly Facade Planner <span style="font-size:11px;color:#10b981">v6.2</span></h1>
   <p class="sub">Vertical up-and-down LED string calculator</p>
   <div class="row">
-    <div class="col"><label>House Width (m)</label><input type="number" id="wIn" value="10.0" step="0.1"></div>
-    <div class="col"><label>House Height (m)</label><input type="number" id="hIn" value="5.0" step="0.1"></div>
+    <div class="col"><label>House Width (m)</label><input type="number" id="wIn" value="10.0" step="0.1" oninput="run()"></div>
+    <div class="col"><label>House Height (m)</label><input type="number" id="hIn" value="5.0" step="0.1" oninput="run()"></div>
   </div>
   <div style="margin-bottom:8px">
     <label>Column Spacing: <span id="spLbl" style="color:#38bdf8">20 cm</span></label>
-    <input class="rng" type="range" id="spIn" min="0" max="50" value="20">
+    <input class="rng" type="range" id="spIn" min="0" max="50" value="20" oninput="run()">
   </div>
   <div class="row">
-    <div class="col"><label>Windows</label><select id="winIn"><option value="around">Route Around</option><option value="blank">Blank Out</option></select></div>
-    <div class="col"><label>Depth (m)</label><input type="number" id="depIn" value="1.0" step="0.1"></div>
+    <div class="col"><label>Windows</label><select id="winIn" onchange="run()"><option value="around">Route Around</option><option value="blank">Blank Out</option></select></div>
+    <div class="col"><label>Depth (m)</label><input type="number" id="depIn" value="1.0" step="0.1" oninput="run()"></div>
   </div>
-  <div class="trow"><label style="margin:0">Porch No-Light Cutoff</label><input type="checkbox" id="porchIn" checked style="width:19px;height:19px"></div>
+  <div class="trow"><label style="margin:0">Porch No-Light Cutoff</label><input type="checkbox" id="porchIn" checked style="width:19px;height:19px" onchange="run()"></div>
 </div>
+
 <div class="card">
   <div class="msw">
-    <button class="mbtn on" id="bHave">Show With What I Have</button>
-    <button class="mbtn" id="bNeed">Show With What I Need</button>
+    <button class="mbtn on" id="bHave" onclick="setM('have')">Show With What I Have</button>
+    <button class="mbtn" id="bNeed" onclick="setM('need')">Show With What I Need</button>
   </div>
-  <svg id="svg" viewBox="0 0 800 440"></svg>
+  <svg id="svg" viewBox="0 0 800 440">
+    <polygon points="30,410 30,56.6 481.4,56.6 557.25,30 633.1,56.6 770,56.6 770,410" fill="#111827" stroke="#38bdf8" stroke-width="2.5"/>
+    <polygon points="481.4,410 481.4,56.6 557.25,30 633.1,56.6 633.1,410" fill="rgba(217,119,6,.16)"/>
+    <rect x="67" y="68" width="70.3" height="201.4" fill="#04070d" stroke="#64748b" stroke-width="2"/>
+    <rect x="218.7" y="68" width="111" height="102.6" fill="#04070d" stroke="#64748b" stroke-width="2"/>
+    <rect x="485.1" y="71.8" width="144.3" height="91.2" fill="#04070d" stroke="#64748b" stroke-width="2"/>
+    <rect x="485.1" y="231.4" width="144.3" height="114" fill="#04070d" stroke="#64748b" stroke-width="2"/>
+  </svg>
   <div class="stats">
     <div class="sbox"><div class="sval" id="oOut">0.0 m</div><div class="slbl">What You Have</div></div>
     <div class="sbox"><div class="sval" id="nOut">0.0 m</div><div class="slbl">Full House Needed</div></div>
   </div>
 </div>
+
 <div class="card">
   <h2>1. What I Have Already</h2>
   <div class="arow">
@@ -83,12 +92,108 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
       <option value="perm">Permanent Lights (30m / 100 LEDs)</option>
       <option value="pro">Twinkly Pro/Plus 250 (25m / 250 LEDs)</option>
     </select>
-    <button class="abtn" id="addBtn">+ Add</button>
+    <button class="abtn" onclick="addS()">+ Add</button>
   </div>
   <div id="invBox"></div>
 </div>
+
 <div class="card">
   <h2>2. Extra Sets to Buy</h2>
   <div id="buyBox"></div>
 </div>
+
 <script>
+var METERS = {s600:48,s400:32,s250:20,s100:8,hd750:30,c400:40,c210:21,ic190:15,cl400:6,d400:20,d200:10,f40:20,f20:10,c9:12,net:12,perm:30,pro:25};
+var NAMES = {s600:'Strings 600 (48m)',s400:'Strings 400 (32m)',s250:'Strings 250 (20m)',s100:'Strings 100 (8m)',hd750:'Strings HD 750 (30m)',c400:'Curtains 400 (40m)',c210:'Curtains 210 (21m)',ic190:'Icicles 190 (15m)',cl400:'Cluster 400 (6m)',d400:'Dots 400 (20m)',d200:'Dots 200 (10m)',f40:'Festoon 40 (20m)',f20:'Festoon 20 (10m)',c9:'C9 Bulbs (12m)',net:'Net Lights (12m)',perm:'Permanent Lights (30m)',pro:'Twinkly Pro/Plus 250 (25m)'};
+var inv = {}, mode = 'have';
+
+function setM(m) {
+  mode = m;
+  document.getElementById('bHave').className = m === 'have' ? 'mbtn on' : 'mbtn';
+  document.getElementById('bNeed').className = m === 'need' ? 'mbtn on' : 'mbtn';
+  run();
+}
+function addS() {
+  var k = document.getElementById('pSel').value;
+  inv[k] = (inv[k] || 0) + 1;
+  run();
+}
+function chg(k, d) {
+  inv[k] = (inv[k] || 0) + d;
+  if (inv[k] <= 0) delete inv[k];
+  run();
+}
+function el(tag, attrs, txt) {
+  var n = document.createElementNS('http://w3.org', tag);
+  for (var k in attrs) n.setAttribute(k, attrs[k]);
+  if (txt) n.textContent = txt;
+  return n;
+}
+function addBuy(box, lbl, bdg) {
+  var d = document.createElement('div');
+  d.className = 'buy';
+  var s = document.createElement('span');
+  s.textContent = lbl;
+  var b = document.createElement('strong');
+  b.textContent = bdg;
+  d.appendChild(s);
+  d.appendChild(b);
+  box.appendChild(d);
+}
+function getColor(idx) {
+  var r = idx % 5;
+  if (r === 0) return '#38bdf8';
+  if (r === 1) return '#f43f5e';
+  if (r === 2) return '#10b981';
+  if (r === 3) return '#f59e0b';
+  return '#a855f7';
+}
+function run() {
+  var box = document.getElementById('invBox');
+  box.innerHTML = '';
+  var owned = 0, any = false;
+  for (var k in inv) {
+    var q = inv[k] || 0;
+    if (q > 0) {
+      any = true;
+      owned += METERS[k] * q;
+      var r = document.createElement('div');
+      r.className = 'item';
+      var t = document.createElement('span');
+      t.textContent = NAMES[k] + ' x' + q;
+      var g = document.createElement('div');
+      var b1 = document.createElement('button');
+      b1.className = 'qbtn'; b1.textContent = '-';
+      b1.setAttribute('onclick', 'chg("' + k + '",-1)');
+      var b2 = document.createElement('button');
+      b2.className = 'qbtn'; b2.textContent = '+'; b2.style.marginLeft = '6px';
+      b2.setAttribute('onclick', 'chg("' + k + '",1)');
+      g.appendChild(b1); g.appendChild(b2);
+      r.appendChild(t); r.appendChild(g);
+      box.appendChild(r);
+    }
+  }
+  if (!any) {
+    var p = document.createElement('p');
+    p.className = 'sub';
+    p.textContent = 'No sets added yet.';
+    box.appendChild(p);
+  }
+  var W = Math.max(2, parseFloat(document.getElementById('wIn').value) || 10);
+  var H = Math.max(2, parseFloat(document.getElementById('hIn').value) || 5);
+  var cm = parseInt(document.getElementById('spIn').value, 10);
+  document.getElementById('spLbl').textContent = cm + ' cm';
+  var step = Math.max(2, cm) / 100;
+  var wMode = document.getElementById('winIn').value;
+  var dep = Math.max(0, parseFloat(document.getElementById('depIn').value) || 0);
+  var pCut = document.getElementById('porchIn').checked;
+
+  var svg = document.getElementById('svg');
+  svg.innerHTML = '';
+  var sx = function(v){ return (30 + v * 740).toFixed(1); };
+  var sy = function(v){ return (410 - v * 380).toFixed(1); };
+
+  var pts = sx(0)+','+sy(0)+' '+sx(0)+','+sy(0.93)+' '+sx(0.61)+','+sy(0.93)+' '+sx(0.7125)+','+sy(1)+' '+sx(0.815)+','+sy(0.93)+' '+sx(1)+','+sy(0.93)+' '+sx(1)+','+sy(0);
+  svg.appendChild(el('polygon', {points:pts, fill:'#111827', stroke:'#38bdf8', 'stroke-width':'2.5'}));
+
+  var bpts = sx(0.61)+','+sy(0)+' '+sx(0.61)+','+sy(0.93)+' '+sx(0.7125)+','+sy(1)+' '+sx(0.815)+','+sy(0.93)+' '+sx(0.815)+','+sy(0);
