@@ -150,7 +150,7 @@
       { id: 'pro250', name: 'Twinkly Pro/Plus 250 (25m / 250 LEDs)', meters: 25, leds: 250 }
     ];
 
-    let inventory = {}; // starts empty (0 sets)
+    let inventory = {};
     let viewMode = 'have';
 
     const sel = document.getElementById('productSelect');
@@ -221,3 +221,6 @@
       const W = Math.max(2, parseFloat(document.getElementById('houseW').value) || 10.0);
       const H = Math.max(2, parseFloat(document.getElementById('houseH').value) || 5.0);
       const rawCm = parseInt(document.getElementById('colSpacing').value, 10);
+      const effectiveCm = Math.max(1, rawCm);
+      const spacingM = effectiveCm / 100;
+      const winMode = document.getElementById('winMode').value;
