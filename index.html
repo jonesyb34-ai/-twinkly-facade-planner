@@ -34,8 +34,7 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
 </head>
 <body>
 <div class="card">
-  <h1>Twinkly Facade Planner <span style="font-size:11px;color:#10b981">v6.2</span></h1>
-  <p class="sub">Vertical up-and-down LED string calculator</p>
+  <h1>Twinkly Facade Planner <span style="font-size:11px;color:#10b981">v6.3</span></h1>
   <div class="row">
     <div class="col"><label>House Width (m)</label><input type="number" id="wIn" value="10.0" step="0.1" oninput="run()"></div>
     <div class="col"><label>House Height (m)</label><input type="number" id="hIn" value="5.0" step="0.1" oninput="run()"></div>
@@ -50,7 +49,6 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
   </div>
   <div class="trow"><label style="margin:0">Porch No-Light Cutoff</label><input type="checkbox" id="porchIn" checked style="width:19px;height:19px" onchange="run()"></div>
 </div>
-
 <div class="card">
   <div class="msw">
     <button class="mbtn on" id="bHave" onclick="setM('have')">Show With What I Have</button>
@@ -59,141 +57,79 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
   <svg id="svg" viewBox="0 0 800 440">
     <polygon points="30,410 30,56.6 481.4,56.6 557.25,30 633.1,56.6 770,56.6 770,410" fill="#111827" stroke="#38bdf8" stroke-width="2.5"/>
     <polygon points="481.4,410 481.4,56.6 557.25,30 633.1,56.6 633.1,410" fill="rgba(217,119,6,.16)"/>
+    <rect id="porchBox" x="144.7" y="231.4" width="247.9" height="178.6" fill="rgba(239,68,68,.18)" stroke="#ef4444" stroke-width="1.5"/>
+    <text id="porchTxt" x="178" y="326" fill="#fca5a5" font-size="13" font-weight="bold">PORCH NO-LIGHT</text>
     <rect x="67" y="68" width="70.3" height="201.4" fill="#04070d" stroke="#64748b" stroke-width="2"/>
     <rect x="218.7" y="68" width="111" height="102.6" fill="#04070d" stroke="#64748b" stroke-width="2"/>
     <rect x="485.1" y="71.8" width="144.3" height="91.2" fill="#04070d" stroke="#64748b" stroke-width="2"/>
     <rect x="485.1" y="231.4" width="144.3" height="114" fill="#04070d" stroke="#64748b" stroke-width="2"/>
+    <g id="leds"></g>
   </svg>
   <div class="stats">
     <div class="sbox"><div class="sval" id="oOut">0.0 m</div><div class="slbl">What You Have</div></div>
     <div class="sbox"><div class="sval" id="nOut">0.0 m</div><div class="slbl">Full House Needed</div></div>
   </div>
 </div>
-
 <div class="card">
   <h2>1. What I Have Already</h2>
   <div class="arow">
     <select id="pSel">
-      <option value="s600">Strings 600 (48m / 600 LEDs)</option>
-      <option value="s400">Strings 400 (32m / 400 LEDs)</option>
-      <option value="s250">Strings 250 (20m / 250 LEDs)</option>
-      <option value="s100">Strings 100 (8m / 100 LEDs)</option>
-      <option value="hd750">Strings HD 750 (30m / 750 LEDs)</option>
-      <option value="c400">Curtains 400 (40m / 400 LEDs)</option>
-      <option value="c210">Curtains 210 (21m / 210 LEDs)</option>
-      <option value="ic190">Icicles 190 (15m / 190 LEDs)</option>
-      <option value="cl400">Cluster 400 (6m / 400 LEDs)</option>
-      <option value="d400">Dots 400 (20m / 400 LEDs)</option>
-      <option value="d200">Dots 200 (10m / 200 LEDs)</option>
-      <option value="f40">Festoon 40 (20m / 40 Bulbs)</option>
-      <option value="f20">Festoon 20 (10m / 20 Bulbs)</option>
-      <option value="c9">C9 Bulbs (12m / 40 Bulbs)</option>
-      <option value="net">Net Lights (12m / 144 LEDs)</option>
-      <option value="perm">Permanent Lights (30m / 100 LEDs)</option>
-      <option value="pro">Twinkly Pro/Plus 250 (25m / 250 LEDs)</option>
+      <option value="s600">Strings 600 (48m)</option>
+      <option value="s400">Strings 400 (32m)</option>
+      <option value="s250">Strings 250 (20m)</option>
+      <option value="s100">Strings 100 (8m)</option>
+      <option value="hd750">Strings HD 750 (30m)</option>
+      <option value="c400">Curtains 400 (40m)</option>
+      <option value="c210">Curtains 210 (21m)</option>
+      <option value="ic190">Icicles 190 (15m)</option>
+      <option value="cl400">Cluster 400 (6m)</option>
+      <option value="d400">Dots 400 (20m)</option>
+      <option value="d200">Dots 200 (10m)</option>
+      <option value="f40">Festoon 40 (20m)</option>
+      <option value="f20">Festoon 20 (10m)</option>
+      <option value="c9">C9 Bulbs (12m)</option>
+      <option value="net">Net Lights (12m)</option>
+      <option value="perm">Permanent Lights (30m)</option>
+      <option value="pro">Pro/Plus 250 (25m)</option>
     </select>
     <button class="abtn" onclick="addS()">+ Add</button>
   </div>
   <div id="invBox"></div>
 </div>
-
 <div class="card">
   <h2>2. Extra Sets to Buy</h2>
   <div id="buyBox"></div>
 </div>
-
 <script>
-var METERS = {s600:48,s400:32,s250:20,s100:8,hd750:30,c400:40,c210:21,ic190:15,cl400:6,d400:20,d200:10,f40:20,f20:10,c9:12,net:12,perm:30,pro:25};
-var NAMES = {s600:'Strings 600 (48m)',s400:'Strings 400 (32m)',s250:'Strings 250 (20m)',s100:'Strings 100 (8m)',hd750:'Strings HD 750 (30m)',c400:'Curtains 400 (40m)',c210:'Curtains 210 (21m)',ic190:'Icicles 190 (15m)',cl400:'Cluster 400 (6m)',d400:'Dots 400 (20m)',d200:'Dots 200 (10m)',f40:'Festoon 40 (20m)',f20:'Festoon 20 (10m)',c9:'C9 Bulbs (12m)',net:'Net Lights (12m)',perm:'Permanent Lights (30m)',pro:'Twinkly Pro/Plus 250 (25m)'};
-var inv = {}, mode = 'have';
-
-function setM(m) {
-  mode = m;
-  document.getElementById('bHave').className = m === 'have' ? 'mbtn on' : 'mbtn';
-  document.getElementById('bNeed').className = m === 'need' ? 'mbtn on' : 'mbtn';
-  run();
-}
-function addS() {
-  var k = document.getElementById('pSel').value;
-  inv[k] = (inv[k] || 0) + 1;
-  run();
-}
-function chg(k, d) {
-  inv[k] = (inv[k] || 0) + d;
-  if (inv[k] <= 0) delete inv[k];
-  run();
-}
-function el(tag, attrs, txt) {
-  var n = document.createElementNS('http://w3.org', tag);
-  for (var k in attrs) n.setAttribute(k, attrs[k]);
-  if (txt) n.textContent = txt;
-  return n;
-}
-function addBuy(box, lbl, bdg) {
-  var d = document.createElement('div');
-  d.className = 'buy';
-  var s = document.createElement('span');
-  s.textContent = lbl;
-  var b = document.createElement('strong');
-  b.textContent = bdg;
-  d.appendChild(s);
-  d.appendChild(b);
-  box.appendChild(d);
-}
-function getColor(idx) {
-  var r = idx % 5;
-  if (r === 0) return '#38bdf8';
-  if (r === 1) return '#f43f5e';
-  if (r === 2) return '#10b981';
-  if (r === 3) return '#f59e0b';
-  return '#a855f7';
-}
-function run() {
-  var box = document.getElementById('invBox');
-  box.innerHTML = '';
-  var owned = 0, any = false;
-  for (var k in inv) {
-    var q = inv[k] || 0;
-    if (q > 0) {
-      any = true;
-      owned += METERS[k] * q;
-      var r = document.createElement('div');
-      r.className = 'item';
-      var t = document.createElement('span');
-      t.textContent = NAMES[k] + ' x' + q;
-      var g = document.createElement('div');
-      var b1 = document.createElement('button');
-      b1.className = 'qbtn'; b1.textContent = '-';
-      b1.setAttribute('onclick', 'chg("' + k + '",-1)');
-      var b2 = document.createElement('button');
-      b2.className = 'qbtn'; b2.textContent = '+'; b2.style.marginLeft = '6px';
-      b2.setAttribute('onclick', 'chg("' + k + '",1)');
-      g.appendChild(b1); g.appendChild(b2);
-      r.appendChild(t); r.appendChild(g);
-      box.appendChild(r);
-    }
+var M={s600:48,s400:32,s250:20,s100:8,hd750:30,c400:40,c210:21,ic190:15,cl400:6,d400:20,d200:10,f40:20,f20:10,c9:12,net:12,perm:30,pro:25};
+var N={s600:'Strings 600 (48m)',s400:'Strings 400 (32m)',s250:'Strings 250 (20m)',s100:'Strings 100 (8m)',hd750:'Strings HD 750 (30m)',c400:'Curtains 400 (40m)',c210:'Curtains 210 (21m)',ic190:'Icicles 190 (15m)',cl400:'Cluster 400 (6m)',d400:'Dots 400 (20m)',d200:'Dots 200 (10m)',f40:'Festoon 40 (20m)',f20:'Festoon 20 (10m)',c9:'C9 Bulbs (12m)',net:'Net Lights (12m)',perm:'Permanent Lights (30m)',pro:'Pro/Plus 250 (25m)'};
+var inv={},mode='have';
+function setM(m){mode=m;document.getElementById('bHave').className=m==='have'?'mbtn on':'mbtn';document.getElementById('bNeed').className=m==='need'?'mbtn on':'mbtn';run();}
+function addS(){var k=document.getElementById('pSel').value;inv[k]=(inv[k]||0)+1;run();}
+function chg(k,d){inv[k]=(inv[k]||0)+d;if(inv[k]<=0)delete inv[k];run();}
+function run(){
+  var box=document.getElementById('invBox');box.innerHTML='';var owned=0,any=false;
+  for(var k in inv){var q=inv[k]||0;if(q>0){any=true;owned+=M[k]*q;var r=document.createElement('div');r.className='item';r.innerHTML='<span>'+N[k]+' x'+q+'</span><div><button class="qbtn" onclick="chg(\''+k+'\',-1)">-</button><button class="qbtn" style="margin-left:6px" onclick="chg(\''+k+'\',1)">+</button></div>';box.appendChild(r);}}
+  if(!any)box.innerHTML='<p class="sub">No sets added yet.</p>';
+  var W=Math.max(2,parseFloat(document.getElementById('wIn').value)||10);
+  var H=Math.max(2,parseFloat(document.getElementById('hIn').value)||5);
+  var cm=parseInt(document.getElementById('spIn').value,10);
+  document.getElementById('spLbl').textContent=cm+' cm';
+  var step=Math.max(2,cm)/100,wMode=document.getElementById('winIn').value,dep=Math.max(0,parseFloat(document.getElementById('depIn').value)||0),pCut=document.getElementById('porchIn').checked;
+  document.getElementById('porchBox').style.display=pCut?'block':'none';
+  document.getElementById('porchTxt').style.display=pCut?'block':'none';
+  var g=document.getElementById('leds');g.innerHTML='';
+  var sx=function(v){return(30+v*740).toFixed(1);},sy=function(v){return(410-v*380).toFixed(1);};
+  var tot=0,c=0,px=null,pt=null,pb=null,pal=['#38bdf8','#f43f5e','#10b981','#f59e0b','#a855f7'];
+  for(var x=0.05;x<=W-0.05;x+=step){
+    var nx=x/W,top=(nx>=0.61&&nx<=0.815)?0.93+0.07*Math.max(0,1-Math.abs(nx-0.7125)/0.1025):0.93,bot=(pCut&&nx>=0.155&&nx<=0.49)?0.47:0.02;
+    var m=(top-bot)*H+step;if(nx>=0.41&&nx<=0.49)m+=dep;
+    if(wMode==='around'){if(nx>=0.05&&nx<=0.145)m+=Math.min(nx-0.05,0.145-nx)*2*W;if(nx>=0.255&&nx<=0.405)m+=Math.min(nx-0.255,0.405-nx)*2*W;if(nx>=0.615&&nx<=0.81)m+=Math.min(nx-0.615,0.81-nx)*4*W;}
+    var lit=mode==='need'||tot<owned,sc=lit?pal[c%5]:'rgba(100,116,139,.3)',x1=sx(nx),y1=sy(top),y2=sy(bot);
+    var l=document.createElementNS('http://w3.org');l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x1);l.setAttribute('y2',y2);l.setAttribute('stroke',sc);l.setAttribute('stroke-width','2.2');g.appendChild(l);
+    if(px!==null){var ly=(c-1)%2===0?Math.max(parseFloat(pb),parseFloat(y2)):Math.min(parseFloat(pt),parseFloat(y1));var l2=document.createElementNS('http://w3.org');l2.setAttribute('x1',px);l2.setAttribute('y1',ly.toFixed(1));l2.setAttribute('x2',x1);l2.setAttribute('y2',ly.toFixed(1));l2.setAttribute('stroke',sc);l2.setAttribute('stroke-width','2.2');g.appendChild(l2);}
+    px=x1;pt=y1;pb=y2;tot+=m;c++;
   }
-  if (!any) {
-    var p = document.createElement('p');
-    p.className = 'sub';
-    p.textContent = 'No sets added yet.';
-    box.appendChild(p);
-  }
-  var W = Math.max(2, parseFloat(document.getElementById('wIn').value) || 10);
-  var H = Math.max(2, parseFloat(document.getElementById('hIn').value) || 5);
-  var cm = parseInt(document.getElementById('spIn').value, 10);
-  document.getElementById('spLbl').textContent = cm + ' cm';
-  var step = Math.max(2, cm) / 100;
-  var wMode = document.getElementById('winIn').value;
-  var dep = Math.max(0, parseFloat(document.getElementById('depIn').value) || 0);
-  var pCut = document.getElementById('porchIn').checked;
-
-  var svg = document.getElementById('svg');
-  svg.innerHTML = '';
-  var sx = function(v){ return (30 + v * 740).toFixed(1); };
-  var sy = function(v){ return (410 - v * 380).toFixed(1); };
-
-  var pts = sx(0)+','+sy(0)+' '+sx(0)+','+sy(0.93)+' '+sx(0.61)+','+sy(0.93)+' '+sx(0.7125)+','+sy(1)+' '+sx(0.815)+','+sy(0.93)+' '+sx(1)+','+sy(0.93)+' '+sx(1)+','+sy(0);
-  svg.appendChild(el('polygon', {points:pts, fill:'#111827', stroke:'#38bdf8', 'stroke-width':'2.5'}));
-
-  var bpts = sx(0.61)+','+sy(0)+' '+sx(0.61)+','+sy(0.93)+' '+sx(0.7125)+','+sy(1)+' '+sx(0.815)+','+sy(0.93)+' '+sx(0.815)+','+sy(0);
+  document.getElementById('oOut').textContent=owned.toFixed(1)+' m';document.getElementById('nOut').textContent=tot.toFixed(1)+' m';
+  var bBox=document.getElementById('buyBox');bBox.innerHTML='';var def=Math.max(0,tot-owned);
+  if(def<=0.1)bBox.innerHTML='<div class="buy">Your sets cover the full house!</div>';
