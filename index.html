@@ -30,13 +30,11 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
 .sval{font-size:16px;font-weight:800;color:#38bdf8}
 .slbl{font-size:11px;color:#94a3b8}
 .buy{display:flex;justify-content:space-between;padding:7px 9px;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.4);border-radius:9px;margin-bottom:5px;font-size:12px;color:#a7f3d0}
-#err{display:none;background:#7f1d1d;color:#fecaca;padding:8px;border-radius:8px;font-size:12px;margin-bottom:8px}
 </style>
 </head>
 <body>
-<div id="err"></div>
 <div class="card">
-  <h1>Twinkly Facade Planner <span style="font-size:11px;color:#10b981">v5.0</span></h1>
+  <h1>Twinkly Facade Planner <span style="font-size:11px;color:#10b981">v6.0</span></h1>
   <p class="sub">Vertical up-and-down LED string calculator</p>
   <div class="row">
     <div class="col"><label>House Width (m)</label><input type="number" id="wIn" value="10.0" step="0.1"></div>
@@ -52,7 +50,6 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
   </div>
   <div class="trow"><label style="margin:0">Porch No-Light Cutoff</label><input type="checkbox" id="porchIn" checked style="width:19px;height:19px"></div>
 </div>
-
 <div class="card">
   <div class="msw">
     <button class="mbtn on" id="bHave">Show With What I Have</button>
@@ -64,7 +61,6 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
     <div class="sbox"><div class="sval" id="nOut">0.0 m</div><div class="slbl">Full House Needed</div></div>
   </div>
 </div>
-
 <div class="card">
   <h2>1. What I Have Already</h2>
   <div class="arow">
@@ -91,117 +87,8 @@ svg{width:100%;height:auto;background:#04070d;border-radius:10px;border:1px soli
   </div>
   <div id="invBox"></div>
 </div>
-
 <div class="card">
   <h2>2. Extra Sets to Buy</h2>
   <div id="buyBox"></div>
 </div>
-
 <script>
-window.onerror = function(m, u, l) {
-  var e = document.getElementById('err');
-  e.style.display = 'block';
-  e.textContent = 'Error line ' + l + ': ' + m;
-};
-var METERS = {s600:48,s400:32,s250:20,s100:8,hd750:30,c400:40,c210:21,ic190:15,cl400:6,d400:20,d200:10,f40:20,f20:10,c9:12,net:12,perm:30,pro:25};
-var NAMES = {s600:'Strings 600 (48m)',s400:'Strings 400 (32m)',s250:'Strings 250 (20m)',s100:'Strings 100 (8m)',hd750:'Strings HD 750 (30m)',c400:'Curtains 400 (40m)',c210:'Curtains 210 (21m)',ic190:'Icicles 190 (15m)',cl400:'Cluster 400 (6m)',d400:'Dots 400 (20m)',d200:'Dots 200 (10m)',f40:'Festoon 40 (20m)',f20:'Festoon 20 (10m)',c9:'C9 Bulbs (12m)',net:'Net Lights (12m)',perm:'Permanent Lights (30m)',pro:'Twinkly Pro/Plus 250 (25m)'};
-var inv = {}, mode = 'have';
-
-document.getElementById('bHave').onclick = function() {
-  mode = 'have';
-  this.className = 'mbtn on';
-  document.getElementById('bNeed').className = 'mbtn';
-  run();
-};
-document.getElementById('bNeed').onclick = function() {
-  mode = 'need';
-  this.className = 'mbtn on';
-  document.getElementById('bHave').className = 'mbtn';
-  run();
-};
-document.getElementById('addBtn').onclick = function() {
-  var k = document.getElementById('pSel').value;
-  inv[k] = (inv[k] || 0) + 1;
-  run();
-};
-function el(tag, attrs, txt) {
-  var n = document.createElementNS('http://w3.org', tag);
-  for (var k in attrs) n.setAttribute(k, attrs[k]);
-  if (txt) n.textContent = txt;
-  return n;
-}
-function addBuy(box, lbl, bdg) {
-  var d = document.createElement('div');
-  d.className = 'buy';
-  var s = document.createElement('span');
-  s.textContent = lbl;
-  var b = document.createElement('strong');
-  b.textContent = bdg;
-  d.appendChild(s);
-  d.appendChild(b);
-  box.appendChild(d);
-}
-function getColor(idx) {
-  var r = idx % 5;
-  if (r === 0) return '#38bdf8';
-  if (r === 1) return '#f43f5e';
-  if (r === 2) return '#10b981';
-  if (r === 3) return '#f59e0b';
-  return '#a855f7';
-}
-function run() {
-  var box = document.getElementById('invBox');
-  box.innerHTML = '';
-  var owned = 0, any = false;
-  for (var k in inv) {
-    var q = inv[k] || 0;
-    if (q > 0) {
-      any = true;
-      owned += METERS[k] * q;
-      var r = document.createElement('div');
-      r.className = 'item';
-      var t = document.createElement('span');
-      t.textContent = NAMES[k] + ' x' + q;
-      var g = document.createElement('div');
-      var b1 = document.createElement('button');
-      b1.className = 'qbtn'; b1.textContent = '-';
-      b1.onclick = (function(key){ return function(){ inv[key]--; run(); }; })(k);
-      var b2 = document.createElement('button');
-      b2.className = 'qbtn'; b2.textContent = '+'; b2.style.marginLeft = '6px';
-      b2.onclick = (function(key){ return function(){ inv[key]++; run(); }; })(k);
-      g.appendChild(b1); g.appendChild(b2);
-      r.appendChild(t); r.appendChild(g);
-      box.appendChild(r);
-    }
-  }
-  if (!any) {
-    var p = document.createElement('p');
-    p.className = 'sub';
-    p.textContent = 'No sets added yet.';
-    box.appendChild(p);
-  }
-  var W = Math.max(2, parseFloat(document.getElementById('wIn').value) || 10);
-  var H = Math.max(2, parseFloat(document.getElementById('hIn').value) || 5);
-  var cm = parseInt(document.getElementById('spIn').value, 10);
-  document.getElementById('spLbl').textContent = cm + ' cm';
-  var step = Math.max(2, cm) / 100;
-  var wMode = document.getElementById('winIn').value;
-  var dep = Math.max(0, parseFloat(document.getElementById('depIn').value) || 0);
-  var pCut = document.getElementById('porchIn').checked;
-
-  var svg = document.getElementById('svg');
-  svg.innerHTML = '';
-  var sx = function(v){ return (30 + v * 740).toFixed(1); };
-  var sy = function(v){ return (410 - v * 380).toFixed(1); };
-
-  var pts = sx(0)+','+sy(0)+' '+sx(0)+','+sy(0.93)+' '+sx(0.61)+','+sy(0.93)+' '+sx(0.7125)+','+sy(1)+' '+sx(0.815)+','+sy(0.93)+' '+sx(1)+','+sy(0.93)+' '+sx(1)+','+sy(0);
-  svg.appendChild(el('polygon', {points:pts, fill:'#111827', stroke:'#38bdf8', 'stroke-width':'2.5'}));
-
-  var bpts = sx(0.61)+','+sy(0)+' '+sx(0.61)+','+sy(0.93)+' '+sx(0.7125)+','+sy(1)+' '+sx(0.815)+','+sy(0.93)+' '+sx(0.815)+','+sy(0);
-  svg.appendChild(el('polygon', {points:bpts, fill:'rgba(217,119,6,.16)'}));
-
-  if (pCut) {
-    svg.appendChild(el('rect', {x:sx(0.155), y:sy(0.47), width:(740*0.335).toFixed(1), height:(380*0.47).toFixed(1), fill:'rgba(239,68,68,.18)', stroke:'#ef4444', 'stroke-width':'1.5'}));
-    svg.appendChild(el('text', {x:sx(0.20), y:sy(0.22), fill:'#fca5a5', 'font-size':'13', 'font-weight':'bold'}, 'PORCH NO-LIGHT'));
-  }
-
